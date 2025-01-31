@@ -1,4 +1,4 @@
-module github.com/Sapronovps/OtusGolangProfessional
+module github.com/Sapronovps/OtusGolangProfessional/hw01_hello_otus
 
 go 1.22
 
