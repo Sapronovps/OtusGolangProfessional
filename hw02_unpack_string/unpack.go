@@ -64,36 +64,39 @@ func UnpackWithBackslash(input string) (string, error) {
 			continue
 		}
 
-		if currSymbol == 92 {
-			if (inputLen - key - 1) >= 2 {
-				nextSymbol := input[key+1]
-				if nextSymbol == 110 {
-					return "", ErrInvalidString
-				}
-
-				nextNextSymbol := input[key+2]
-				if nextNextSymbol == 92 {
-					skipKeys[key+2] = nextNextSymbol
-					continue
-				}
-
-				_, ok := skipKeys[key+1]
-
-				if ok {
-					builder.WriteRune(currSymbol)
-					continue
-				}
-
-				nextNextDigit, nextNextErr := strconv.Atoi(string(nextNextSymbol))
-				if nextNextErr == nil {
-					builder.WriteString(strings.Repeat(string(nextSymbol), nextNextDigit))
-					skipKeys[key+1] = nextSymbol
-					skipKeys[key+2] = nextNextSymbol
-				}
-			}
+		if currSymbol != 92 {
+			builder.WriteRune(currSymbol)
 			continue
 		}
-		builder.WriteRune(currSymbol)
+
+		if (inputLen - key - 1) < 2 {
+			continue
+		}
+
+		nextSymbol := input[key+1]
+		if nextSymbol == 110 {
+			return "", ErrInvalidString
+		}
+
+		nextNextSymbol := input[key+2]
+		if nextNextSymbol == 92 {
+			skipKeys[key+2] = nextNextSymbol
+			continue
+		}
+
+		_, nextSymbolSkip := skipKeys[key+1]
+
+		if nextSymbolSkip {
+			builder.WriteRune(currSymbol)
+			continue
+		}
+
+		nextNextDigit, nextNextErr := strconv.Atoi(string(nextNextSymbol))
+		if nextNextErr == nil {
+			builder.WriteString(strings.Repeat(string(nextSymbol), nextNextDigit))
+			skipKeys[key+1] = nextSymbol
+			skipKeys[key+2] = nextNextSymbol
+		}
 	}
 
 	return builder.String(), nil

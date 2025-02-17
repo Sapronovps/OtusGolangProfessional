@@ -65,5 +65,4 @@ func TestHasBackslash(t *testing.T) {
 			require.True(t, hasBackslash, fmt.Sprintf("func hasBackslash for string %s must be return true", tc))
 		})
 	}
-
 }
