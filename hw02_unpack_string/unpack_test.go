@@ -24,6 +24,18 @@ func TestUnpack(t *testing.T) {
 		{input: `qwe\45`, expected: `qwe44444`},
 		{input: `qwe\\5`, expected: `qwe\\\\\`},
 		{input: `qwe\\\3`, expected: `qwe\3`},
+		{input: "а1б2в3", expected: "аббввв"},
+		{input: "a0", expected: ""},
+		{input: "a1", expected: "a"},
+		{input: "я9", expected: "яяяяяяяяя"},
+		{input: "สวัสดี", expected: "สวัสดี"},
+		{input: "สวัส4ดี", expected: "สวัสสสสดี"},
+		{input: "🙂9", expected: "🙂🙂🙂🙂🙂🙂🙂🙂🙂"},
+
+		{input: "১২৩", expected: "১২৩"},
+		{input: "১2২৩0", expected: "১১২"},
+		{input: "੩4", expected: "੩੩੩੩"},
+		{input: `искус2тво`, expected: "искусство"},
 	}
 
 	for _, tc := range tests {
@@ -43,16 +55,6 @@ func TestUnpackInvalidString(t *testing.T) {
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
 			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
-		})
-	}
-}
-
-func TestIsEnglishLetterInvalidSymbol(t *testing.T) {
-	invalidSymbols := []rune{'ф', 2014, '🙃', ':', '^'}
-	for _, r := range invalidSymbols {
-		t.Run("isEnglishLetter", func(t *testing.T) {
-			isEnglishLetter := isEnglishLetter(r)
-			require.False(t, isEnglishLetter, fmt.Sprintf("func isEnglishLetter for symbol %s must be return true", string(r)))
 		})
 	}
 }

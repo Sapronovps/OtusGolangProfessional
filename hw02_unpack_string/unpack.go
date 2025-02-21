@@ -4,7 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-	"unicode"
 )
 
 var ErrInvalidString = errors.New("invalid string")
@@ -15,39 +14,46 @@ func Unpack(input string) (string, error) {
 	}
 
 	var builder strings.Builder
-	inputLen := len(input)
+	inputRunes := []rune(input)
+	inputLen := len(inputRunes)
+	skipKeys := make(map[int]byte, inputLen)
 
-	for key, currSymbol := range input {
-		if key == 0 && !isEnglishLetter(currSymbol) {
-			if unicode.IsLetter(currSymbol) || unicode.IsDigit(currSymbol) {
-				return "", ErrInvalidString
+	i := -1
+	for _, currSymbol := range input {
+		i++
+		// Если символ есть в карте для пропуска
+		_, isSkip := skipKeys[i]
+		if isSkip {
+			continue
+		}
+
+		// Если первый символ цифра - тогда ошибка
+		_, isCurrSymbolDigit := strconv.Atoi(string(currSymbol))
+		if i == 0 && isCurrSymbolDigit == nil {
+			return "", ErrInvalidString
+		}
+
+		if (inputLen - i) > 1 {
+			nextSymbol := inputRunes[i+1]
+			nextSymbolDigit, isNextSymbolDigit := strconv.Atoi(string(nextSymbol))
+
+			if (inputLen - i) > 2 {
+				nextNextSymbol := inputRunes[i+2]
+				_, isNNextDigit := strconv.Atoi(string(nextNextSymbol))
+				if isNextSymbolDigit == nil && isNNextDigit == nil || isCurrSymbolDigit == nil && isNextSymbolDigit == nil {
+					return "", ErrInvalidString
+				}
 			}
-			return "", nil
-		}
-		if !unicode.IsDigit(currSymbol) && !isEnglishLetter(currSymbol) {
-			continue
-		}
-		if key == inputLen-1 {
-			builder.WriteRune(currSymbol)
-			continue
-		}
 
-		_, curErr := strconv.Atoi(string(currSymbol))
-
-		nextSymbol := input[key+1]
-		nextDigit, nextErr := strconv.Atoi(string(nextSymbol))
-		if curErr == nil {
-			if nextErr == nil {
-				return "", ErrInvalidString
+			// Если текущий символ не цифра, а следующий символ цифра, тогда делаем repeat символа
+			if isCurrSymbolDigit != nil && isNextSymbolDigit == nil {
+				builder.WriteString(strings.Repeat(string(currSymbol), nextSymbolDigit))
+				skipKeys[i+1] = byte(nextSymbol)
+				continue
 			}
-			continue
 		}
 
-		if nextErr == nil {
-			builder.WriteString(strings.Repeat(string(currSymbol), nextDigit))
-		} else {
-			builder.WriteRune(currSymbol)
-		}
+		builder.WriteRune(currSymbol)
 	}
 
 	return builder.String(), nil
@@ -100,13 +106,6 @@ func UnpackWithBackslash(input string) (string, error) {
 	}
 
 	return builder.String(), nil
-}
-
-func isEnglishLetter(r rune) bool {
-	if (r < 'a' || r > 'z') && (r < 'A' || r > 'Z') {
-		return false
-	}
-	return true
 }
 
 func hasBackslash(input string) bool {
