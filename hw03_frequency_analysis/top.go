@@ -3,25 +3,54 @@ package hw03frequencyanalysis
 import (
 	"regexp"
 	"sort"
+	"strings"
 	"unicode"
 )
 
-func Top10(input string, isSensetive bool) []string {
-	re := regexp.MustCompile(`[^\s]+`)
-	words := re.FindAllString(input, -1)
+func Top10(input string) []string {
+	words := findWords(input)
 	frequencyWords := make(map[string]int)
 
-	for i := 0; i < len(words); i++ {
-		if isSensetive {
-			frequencyWords[words[i]]++
-		} else {
-			if words[i] == "-" {
-				continue
-			}
-			frequencyWords[FirstLetterToLower(RemovePunctuationMark(words[i]))]++
-		}
+	for i := range words {
+		frequencyWords[words[i]]++
 	}
 
+	return sortWordsByKeyAndValue(frequencyWords)
+}
+
+func Top10NotSensetive(input string) []string {
+	words := findWords(input)
+	frequencyWords := make(map[string]int)
+
+	for i := range words {
+		if words[i] == "-" {
+			continue
+		}
+		frequencyWords[strings.ToLower(RemovePunctuationMark(words[i]))]++
+	}
+
+	return sortWordsByKeyAndValue(frequencyWords)
+}
+
+// Удаление знаков пунктуации по краям слова.
+func RemovePunctuationMark(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	r := []rune(s)
+	if !unicode.IsLetter(r[0]) {
+		r = r[1:]
+	}
+	rLen := len(r)
+	if !unicode.IsLetter(r[rLen-1]) {
+		r = r[:rLen-1]
+	}
+
+	return string(r)
+}
+
+// Сортировка слов по ключам и значениям.
+func sortWordsByKeyAndValue(frequencyWords map[string]int) []string {
 	// Шаг 1: Получаем ключи карты
 	keys := make([]string, 0, len(frequencyWords))
 	for k := range frequencyWords {
@@ -47,29 +76,8 @@ func Top10(input string, isSensetive bool) []string {
 	return top10
 }
 
-func FirstLetterToLower(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-
-	r := []rune(s)
-	r[0] = unicode.ToLower(r[0])
-
-	return string(r)
-}
-
-func RemovePunctuationMark(s string) string {
-	if len(s) == 0 {
-		return s
-	}
-	r := []rune(s)
-	if !unicode.IsLetter(r[0]) {
-		r = r[1:]
-	}
-	rLen := len(r)
-	if !unicode.IsLetter(r[rLen-1]) {
-		r = r[:rLen-1]
-	}
-
-	return string(r)
+// Поиск слов в заданной строке.
+func findWords(input string) []string {
+	re := regexp.MustCompile(`[^\s]+`)
+	return re.FindAllString(input, -1)
 }
