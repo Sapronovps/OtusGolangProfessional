@@ -7,7 +7,7 @@ import (
 )
 
 // Change to true if needed.
-var taskWithAsteriskIsCompleted = false
+var taskWithAsteriskIsCompleted = true
 
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
@@ -79,4 +79,25 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+}
+
+func TestRemovePunctuationMart(t *testing.T) {
+	t.Run("empty string", func(t *testing.T) {
+		require.Len(t, RemovePunctuationMark(""), 0)
+	})
+
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{input: "Привет,", expected: "Привет"},
+		{input: "!abcdg!", expected: "abcdg"},
+		{input: "-Ababa,", expected: "Ababa"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.input, func(t *testing.T) {
+			require.Equal(t, tc.expected, RemovePunctuationMark(tc.input))
+		})
+	}
 }
