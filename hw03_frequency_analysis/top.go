@@ -3,7 +3,6 @@ package hw03frequencyanalysis
 import (
 	"regexp"
 	"sort"
-	"strings"
 	"unicode"
 )
 
@@ -13,20 +12,6 @@ func Top10(input string) []string {
 
 	for i := range words {
 		frequencyWords[words[i]]++
-	}
-
-	return sortWordsByKeyAndValue(frequencyWords)
-}
-
-func Top10NotSensetive(input string) []string {
-	words := findWords(input)
-	frequencyWords := make(map[string]int)
-
-	for i := range words {
-		if words[i] == "-" {
-			continue
-		}
-		frequencyWords[strings.ToLower(RemovePunctuationMark(words[i]))]++
 	}
 
 	return sortWordsByKeyAndValue(frequencyWords)
