@@ -56,7 +56,7 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 	return ok
 }
 
-// Получение значения из кеша
+// Получение значения из кеша.
 func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
