@@ -41,6 +41,7 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 		if cache.capacity > cache.queue.Len() {
 			lastElem := cache.queue.Back()
 			cache.queue.Remove(lastElem)
+			delete(cache.items, key)
 		}
 		newElem := cache.queue.PushFront(value)
 		cache.items[key] = newElem
