@@ -1,6 +1,8 @@
 package hw04lrucache
 
-import "sync"
+import (
+	"sync"
+)
 
 type Key string
 
@@ -36,21 +38,25 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 	if ok {
 		cache.queue.Remove(existValue)
 		moveElem := cache.queue.PushFront(value)
+		moveElem.Key = key
 		cache.items[key] = moveElem
 	} else {
-		if cache.capacity > cache.queue.Len() {
+		if cache.capacity <= cache.queue.Len() {
 			lastElem := cache.queue.Back()
-			cache.queue.Remove(lastElem)
-			delete(cache.items, key)
+			if lastElem != nil {
+				delete(cache.items, lastElem.Key)
+				cache.queue.Remove(lastElem)
+			}
 		}
 		newElem := cache.queue.PushFront(value)
+		newElem.Key = key
 		cache.items[key] = newElem
 	}
 
 	return ok
 }
 
-// Получение значения из кеша.
+// Получение значения из кеша
 func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	cache.mu.Lock()
 	defer cache.mu.Unlock()
@@ -60,6 +66,8 @@ func (cache *lruCache) Get(key Key) (interface{}, bool) {
 	}
 
 	cache.queue.MoveToFront(val)
+	cache.items[key].Key = key
+	cache.queue.Front().Key = key
 
 	return val.Value, true
 }
