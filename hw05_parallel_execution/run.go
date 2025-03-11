@@ -14,6 +14,10 @@ func Run(tasks []Task, n, m int) error {
 	// n - количество горутин
 	// m - максимальное количество ошибок
 
+	if m <= 0 {
+		return ErrErrorsLimitExceeded
+	}
+
 	tasksChan := make(chan Task)
 	errorsChan := make(chan struct{}, m)
 	quitChan := make(chan bool, n)
