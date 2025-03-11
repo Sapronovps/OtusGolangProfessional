@@ -40,20 +40,22 @@ func (cache *lruCache) Set(key Key, value interface{}) bool {
 		moveElem := cache.queue.PushFront(value)
 		moveElem.Key = key
 		cache.items[key] = moveElem
-	} else {
-		if cache.capacity <= cache.queue.Len() {
-			lastElem := cache.queue.Back()
-			if lastElem != nil {
-				delete(cache.items, lastElem.Key)
-				cache.queue.Remove(lastElem)
-			}
-		}
-		newElem := cache.queue.PushFront(value)
-		newElem.Key = key
-		cache.items[key] = newElem
+
+		return true
 	}
 
-	return ok
+	if cache.capacity <= cache.queue.Len() {
+		lastElem := cache.queue.Back()
+		if lastElem != nil {
+			delete(cache.items, lastElem.Key)
+			cache.queue.Remove(lastElem)
+		}
+	}
+	newElem := cache.queue.PushFront(value)
+	newElem.Key = key
+	cache.items[key] = newElem
+
+	return false
 }
 
 // Получение значения из кеша.
