@@ -25,15 +25,22 @@ func Run(tasks []Task, n, m int) error {
 	// Считаем количество ошибок
 	var errorsCount int32
 
-	// Пишем задания в канал
-	wg.Add(1)
-	go writeTasksToChannel(tasks, tasksChannel, &wg, n, m, &errorsCount)
-
 	// Обрабатываем задания
 	for i := 0; i < n; i++ {
 		wg.Add(1)
 		go Worker(tasksChannel, &wg, &errorsCount)
 	}
+
+	// Пишем задания в канал
+	for index, task := range tasks {
+		if n+m == index && int(atomic.LoadInt32(&errorsCount)) >= m {
+			break
+		}
+		tasksChannel <- task
+	}
+
+	// Закроем канал, чтобы горутины-воркеры могли завершиться
+	close(tasksChannel)
 
 	wg.Wait()
 
@@ -42,18 +49,6 @@ func Run(tasks []Task, n, m int) error {
 	}
 
 	return nil
-}
-
-func writeTasksToChannel(tasks []Task, tasksChannel chan<- Task, wg *sync.WaitGroup, n, m int, errCount *int32) {
-	defer close(tasksChannel)
-	defer wg.Done()
-
-	for index, task := range tasks {
-		if n+m == index && int(atomic.LoadInt32(errCount)) >= m {
-			break
-		}
-		tasksChannel <- task
-	}
 }
 
 func Worker(tasksChannel <-chan Task, wg *sync.WaitGroup, errorsCount *int32) {
