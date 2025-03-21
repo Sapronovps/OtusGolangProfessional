@@ -89,4 +89,18 @@ func TestRun(t *testing.T) {
 		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
 		require.Equal(t, runTasksCount, int32(0))
 	})
+
+	t.Run("run when tasks empty", func(t *testing.T) {
+		tasksCount := 1
+		tasks := make([]Task, 0, tasksCount)
+
+		var runTasksCount int32
+
+		workersCount := 0
+		maxErrorsCount := 5
+
+		err := Run(tasks, workersCount, maxErrorsCount)
+		_ = err
+		require.Equal(t, runTasksCount, int32(0))
+	})
 }
