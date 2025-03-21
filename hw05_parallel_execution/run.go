@@ -3,77 +3,65 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
 
 type Task func() error
 
-// Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
 	// n - количество горутин
 	// m - максимальное количество ошибок
 
-	if m <= 0 {
+	if m <= 0 || n <= 0 {
 		return ErrErrorsLimitExceeded
 	}
-
-	tasksChan := make(chan Task)
-	errorsChan := make(chan struct{}, m)
-	quitChan := make(chan bool, n)
-
-	defer close(tasksChan)
-	defer close(errorsChan)
-	defer close(quitChan)
-
 	var wg sync.WaitGroup
 
+	// Создаем канал для заданий
+	tasksChannel := make(chan Task)
+
+	// Считаем количество ошибок
+	var errorsCount int32
+
+	// Пишем задания в канал
+	wg.Add(1)
+	go writeTasksToChannel(tasks, tasksChannel, &wg, n, m, &errorsCount)
+
+	// Обрабатываем задания
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go Worker(&wg, tasksChan, errorsChan, quitChan, m)
-	}
-
-	var err error
-	for index, task := range tasks {
-		if n+m == index {
-			if len(errorsChan) == m {
-				err = ErrErrorsLimitExceeded
-				break
-			}
-		}
-		tasksChan <- task
-	}
-
-	for i := 0; i < n; i++ {
-		quitChan <- true
+		go Worker(tasksChannel, &wg, &errorsCount)
 	}
 
 	wg.Wait()
 
-	if err != nil {
-		return err
+	if int(atomic.LoadInt32(&errorsCount)) >= m {
+		return ErrErrorsLimitExceeded
 	}
 
 	return nil
 }
 
-func Worker(wg *sync.WaitGroup, tasksChan <-chan Task, errorsChan chan<- struct{}, quitChan <-chan bool, m int) {
+func writeTasksToChannel(tasks []Task, tasksChannel chan<- Task, wg *sync.WaitGroup, n, m int, errCount *int32) {
+	defer close(tasksChannel)
 	defer wg.Done()
-	for {
-		select {
-		case task, ok := <-tasksChan:
-			if !ok {
-				return
-			}
-			err := task()
-			if err != nil {
-				if len(errorsChan) == m {
-					return
-				}
-				errorsChan <- struct{}{}
-			}
-		case <-quitChan:
-			return
+
+	for index, task := range tasks {
+		if n+m == index && int(atomic.LoadInt32(errCount)) >= m {
+			break
+		}
+		tasksChannel <- task
+	}
+}
+
+func Worker(tasksChannel <-chan Task, wg *sync.WaitGroup, errorsCount *int32) {
+	defer wg.Done()
+	for task := range tasksChannel {
+		err := task()
+		if err != nil {
+			atomic.AddInt32(errorsCount, 1)
 		}
 	}
 }
