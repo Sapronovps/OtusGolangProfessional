@@ -23,6 +23,9 @@ func checkDone(stg In, done In) Out {
 	go func() {
 		defer func() {
 			close(out)
+			for v := range stg {
+				_ = v
+			}
 		}()
 
 		for {
