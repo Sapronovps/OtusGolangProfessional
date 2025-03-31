@@ -24,7 +24,6 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	}
 
 	_, err = CopyFromTo(fromFile, toFile, limit, fileSize)
-
 	if err != nil {
 		return fmt.Errorf("error copy: %w", err)
 	}
@@ -70,7 +69,7 @@ func OpenReadFile(path string, offset int64) (file *os.File, fileSize int64, err
 }
 
 func CopyFromTo(fromFile io.Reader, toFile io.Writer, limit, fileSize int64) (n int64, err error) {
-	var needCopy = fileSize
+	needCopy := fileSize
 	var copied int64
 
 	if limit > 0 {
@@ -87,7 +86,7 @@ func CopyFromTo(fromFile io.Reader, toFile io.Writer, limit, fileSize int64) (n 
 		}
 
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			return copied, err

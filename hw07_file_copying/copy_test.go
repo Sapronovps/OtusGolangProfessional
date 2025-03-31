@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/stretchr/testify/require"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestCopy(t *testing.T) {
-	var inputFile = "testdata/input.txt"
-	var outputFile = "testdata/output.txt"
+	inputFile := "testdata/input.txt"
+	outputFile := "testdata/output.txt"
 
 	tests := []struct {
 		offset       int64
