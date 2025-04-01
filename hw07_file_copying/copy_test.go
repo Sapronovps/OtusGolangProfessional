@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"testing"
 
@@ -38,5 +39,28 @@ func TestCopy(t *testing.T) {
 			require.NoError(t, err)
 		})
 		_ = os.Remove(outputFile)
+	}
+}
+
+func TestInvalidCopy(t *testing.T) {
+	inputFile := "testdata/input.txt"
+	outputFile := "testdata/output.txt"
+
+	tests := []struct {
+		inputFile   string
+		offset      int64
+		expectedErr error
+	}{
+		{inputFile: "", offset: 0, expectedErr: ErrUnsupportedFile},
+		{inputFile: inputFile, offset: 50000, expectedErr: ErrOffsetExceedsFileSize},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.inputFile, func(t *testing.T) {
+			err := Copy(tc.inputFile, outputFile, tc.offset, 0)
+
+			require.Truef(t, errors.Is(err, tc.expectedErr), "actual error %q", err)
+		})
 	}
 }
