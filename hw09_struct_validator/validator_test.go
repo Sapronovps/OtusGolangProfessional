@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type UserRole string
@@ -42,10 +44,34 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: User{
+				ID:     "123456789123456789012345678901234567",
+				Name:   "Ivan",
+				Age:    25,
+				Email:  "ivan@sdf.com",
+				Role:   "admin",
+				Phones: []string{"12345678911"},
+			},
+			expectedErr: ValidationErrors(nil),
 		},
-		// ...
-		// Place your code here.
+		{
+			in: App{
+				Version: "12345",
+			},
+			expectedErr: ValidationErrors(nil),
+		},
+		{
+			in: Token{
+				Header:    make([]byte, 0),
+				Payload:   make([]byte, 0),
+				Signature: make([]byte, 0),
+			},
+			expectedErr: ValidationErrors(nil),
+		},
+		{
+			in:          Response{Code: 200},
+			expectedErr: ValidationErrors(nil),
+		},
 	}
 
 	for i, tt := range tests {
@@ -53,8 +79,50 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
-			_ = tt
+			err := Validate(tt.in)
+			require.Equal(t, tt.expectedErr, err)
+		})
+	}
+}
+
+func TestInvalidate(t *testing.T) {
+	tests := []struct {
+		in          interface{}
+		expectedErr error
+	}{
+		{
+			in: User{
+				ID:     "12345678912345678901234567890123456723",
+				Name:   "Ivan",
+				Age:    17,
+				Email:  "ivansdf.com",
+				Role:   "admin",
+				Phones: []string{"12345678911"},
+			},
+			expectedErr: fmt.Errorf(
+				"field: ID | err: len must be equal to 36, current: 38\n" +
+					"field: Age | err: value must be no less then 18, current: 17\n" +
+					"field: Email | err: regexp mismatch error - ^\\w+@\\w+\\.\\w+$, current: ivansdf.com\n"),
+		},
+		{
+			in: App{
+				Version: "1",
+			},
+			expectedErr: fmt.Errorf("field: Version | err: len must be equal to 5, current: 1" + "\n"),
+		},
+		{
+			in:          Response{Code: 201},
+			expectedErr: fmt.Errorf("field: Code | err: in error number 201 not contained in 200,404,500" + "\n"),
+		},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
+			tt := tt
+			t.Parallel()
+
+			err := Validate(tt.in)
+			require.EqualError(t, tt.expectedErr, err.Error())
 		})
 	}
 }
