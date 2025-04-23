@@ -32,7 +32,6 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 
 func getUsers(r io.Reader) (result users, err error) {
 	res := make(users, 0, 100000)
-	var i int
 	sc := bufio.NewScanner(r)
 	var user User
 
@@ -41,7 +40,6 @@ func getUsers(r io.Reader) (result users, err error) {
 			return res, err
 		}
 		res = append(res, user)
-		i++
 	}
 	return res, nil
 }
