@@ -1,3 +1,4 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
@@ -36,4 +37,36 @@ func TestGetDomainStat(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
 	})
+}
+
+func TestCountDomains(t *testing.T) {
+	tests := []struct {
+		users    users
+		suffix   string
+		expected DomainStat
+	}{
+		{
+			users:    users{User{Email: "test@test.ru"}, User{Email: "test2@test.ru"}, User{Email: "test@test.gov"}},
+			suffix:   "ru",
+			expected: DomainStat{"test.ru": 2},
+		},
+		{
+			users:    users{User{Email: "test@test.ru"}, User{Email: "test2@test.ru"}, User{Email: "test@test.gov"}},
+			suffix:   "gov",
+			expected: DomainStat{"test.gov": 1},
+		},
+		{
+			users:    users{User{Email: "test@test.ru"}, User{Email: "test2@test.ru"}, User{Email: "test@test.gov"}},
+			suffix:   "com",
+			expected: DomainStat{},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run("testCountDomains", func(t *testing.T) {
+			domainStat, err := countDomains(tc.users, tc.suffix)
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, domainStat)
+		})
+	}
 }

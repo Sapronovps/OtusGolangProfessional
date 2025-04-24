@@ -1,10 +1,10 @@
+//go:generate easyjson -all stats.go
 package hw10programoptimization
 
 import (
-	"encoding/json"
+	"bufio"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 )
 
@@ -20,6 +20,8 @@ type User struct {
 
 type DomainStat map[string]int
 
+type users []User
+
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	u, err := getUsers(r)
 	if err != nil {
@@ -28,38 +30,32 @@ func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
 	return countDomains(u, domain)
 }
 
-type users [100_000]User
-
 func getUsers(r io.Reader) (result users, err error) {
-	content, err := io.ReadAll(r)
-	if err != nil {
-		return
-	}
+	res := make(users, 0, 100000)
+	sc := bufio.NewScanner(r)
+	var user User
 
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
-		var user User
-		if err = json.Unmarshal([]byte(line), &user); err != nil {
-			return
+	for sc.Scan() {
+		if err := user.UnmarshalJSON(sc.Bytes()); err != nil {
+			return res, err
 		}
-		result[i] = user
+		res = append(res, user)
 	}
-	return
+	return res, nil
 }
 
 func countDomains(u users, domain string) (DomainStat, error) {
 	result := make(DomainStat)
 
 	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
+		parts := strings.SplitN(user.Email, "@", 2)
+		if len(parts) != 2 {
+			continue // пропускаем некорректный email
 		}
 
-		if matched {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
+		domainPart := strings.ToLower(parts[1])
+		if strings.HasSuffix(domainPart, "."+domain) {
+			result[domainPart]++
 		}
 	}
 	return result, nil
