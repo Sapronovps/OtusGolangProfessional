@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	"log"
 	"time"
@@ -19,41 +18,52 @@ func main() {
 	defer db.Close()
 
 	//event := &Event{
+	//	ID:           1,
 	//	Title:        "Hello",
 	//	EventTime:    time.Now(),
 	//	Duration:     11,
 	//	Description:  "OTUS OTUS",
-	//	UserID:       "sdfsdf32",
+	//	UserID:       1,
 	//	TimeToNotify: time.Now(),
 	//}
-
+	//
 	//err = CreateEvent(event, db)
 	//if err != nil {
 	//	log.Fatalf("Failed to create event: %v", err)
 	//}
 	//fmt.Println("Все ок")
 
-	event, err := GetEventById(1, db)
-	if err != nil {
-		log.Fatalf("Failed to get event: %v", err)
-	}
-	event.Title = "Изменено"
+	//event, err := GetEventById(1, db)
+	//if err != nil {
+	//	log.Fatalf("Failed to get event: %v", err)
+	//}
+	//event.Title = "Изменено"
+	//
+	//err = UpdateEvent(event, db)
+	//if err != nil {
+	//	log.Fatalf("Failed to update event: %v", err)
+	//}
 
-	err = UpdateEvent(event, db)
-	if err != nil {
-		log.Fatalf("Failed to update event: %v", err)
-	}
+	//events, err := GetAllEvents(db)
+	//
+	//for event, ev := range events {
+	//	_ = event
+	//	fmt.Println(ev)
+	//}
 
-	fmt.Println(event)
+	err = DeleteEventById(5, db)
+	if err != nil {
+		log.Fatalf("Failed to delete event: %v", err)
+	}
 }
 
 type Event struct {
-	ID           string        `db:"id"`
+	ID           int           `db:"id"`
 	Title        string        `db:"title"`
 	EventTime    time.Time     `db:"event_time"`
 	Duration     time.Duration `db:"duration"`
 	Description  string        `db:"description"`
-	UserID       string        `db:"user_id"`
+	UserID       int           `db:"user_id"`
 	TimeToNotify time.Time     `db:"time_to_notify"`
 }
 
@@ -93,4 +103,17 @@ func GetEventById(id int, db *sqlx.DB) (*Event, error) {
 	event := &Event{}
 	err := db.GetContext(context.Background(), event, "SELECT * FROM events WHERE id=$1", id)
 	return event, err
+}
+
+// Возвращает все события.
+func GetAllEvents(db *sqlx.DB) ([]*Event, error) {
+	var events []*Event
+	err := db.Select(&events, "SELECT * FROM events ORDER BY event_time")
+	return events, err
+}
+
+// Удаляет событие по ID.
+func DeleteEventById(id int, db *sqlx.DB) error {
+	_, err := db.Exec("DELETE FROM events WHERE id=$1", id)
+	return err
 }

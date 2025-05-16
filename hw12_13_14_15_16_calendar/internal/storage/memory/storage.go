@@ -1,14 +1,24 @@
 package memorystorage
 
-import "sync"
+import (
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model"
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage"
+)
 
 type Storage struct {
-	// TODO
-	mu sync.RWMutex //nolint:unused
+	eventRepository *EventRepository
 }
 
 func New() *Storage {
 	return &Storage{}
 }
 
-// TODO
+func (s *Storage) Event() storage.EventRepository {
+	if s.eventRepository != nil {
+		return s.eventRepository
+	}
+	s.eventRepository = &EventRepository{
+		events: make(map[int]*model.Event),
+	}
+	return s.eventRepository
+}

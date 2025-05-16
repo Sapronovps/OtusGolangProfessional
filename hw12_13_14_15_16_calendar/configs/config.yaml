@@ -1,10 +1,15 @@
-server:
-  host: 127.0.0.1
-  port: 8081
+Server:
+  Host: 127.0.0.1
+  Port: 8081
 
-logger:
-  level: DEBUG
+Logger:
+  Level: DEBUG
+  File: test.txt
 
-storage:
-  type: postgres # or memory
-  timeout: 3
+DB:
+  Host: localhost
+  Port: 5432
+  Username: user
+  Password: password
+  DbName: otus
+  InMemory: false
