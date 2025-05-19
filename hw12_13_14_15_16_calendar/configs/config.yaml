@@ -11,5 +11,5 @@ DB:
   Port: 5432
   Username: user
   Password: password
-  DbName: otus
+  DBName: otus
   InMemory: false

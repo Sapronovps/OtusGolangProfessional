@@ -35,7 +35,9 @@ func main() {
 	if config.DB.InMemory {
 		storage = memorystorage.New()
 	} else {
-		dsn := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", config.DB.Username, config.DB.Password, config.DB.DbName)
+		dsn := fmt.Sprintf(
+			"user=%s password=%s dbname=%s sslmode=disable",
+			config.DB.Username, config.DB.Password, config.DB.DBName)
 		db, err := app.NewDB(dsn)
 		if err != nil {
 			panic(fmt.Errorf("connet to db: %w", err))

@@ -22,31 +22,31 @@ func TestCreateAndGet(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	storage, _ := fillStorage()
-	eventId := 2
-	event, err := storage.Event().Get(eventId)
+	eventID := 2
+	event, err := storage.Event().Get(eventID)
 	require.Nil(t, err)
 	require.Equal(t, event.Title, "Event 2")
 
 	newTitle := "NewEvent 2"
 	event.Title = newTitle
-	err = storage.Event().Update(eventId, &event)
+	err = storage.Event().Update(eventID, &event)
 	require.Nil(t, err)
 
-	event, err = storage.Event().Get(eventId)
+	event, err = storage.Event().Get(eventID)
 	require.Nil(t, err)
 	require.Equal(t, event.Title, newTitle)
 }
 
 func TestDelete(t *testing.T) {
 	storage, _ := fillStorage()
-	eventId := 2
-	event, err := storage.Event().Get(eventId)
+	eventID := 2
+	event, err := storage.Event().Get(eventID)
 	require.Nil(t, err)
 	require.NotNil(t, event)
 
-	err = storage.Event().Delete(eventId)
+	err = storage.Event().Delete(eventID)
 	require.Nil(t, err)
-	_, err = storage.Event().Get(eventId)
+	_, err = storage.Event().Get(eventID)
 	require.NotNil(t, err)
 }
 

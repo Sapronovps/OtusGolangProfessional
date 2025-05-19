@@ -29,7 +29,7 @@ type DBConf struct {
 	Port     string
 	Username string
 	Password string
-	DbName   string
+	DBName   string
 	InMemory bool
 }
 

@@ -2,11 +2,12 @@ package internalhttp
 
 import (
 	"context"
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -52,7 +53,7 @@ func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func echoHelloWorld(w http.ResponseWriter, r *http.Request) {
+func echoHelloWorld(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("Hello World"))
 }
 

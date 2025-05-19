@@ -5,8 +5,9 @@ import (
 	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model"
 	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+
+	_ "github.com/lib/pq" // for postgres
 )
 
 type App struct {
@@ -26,7 +27,7 @@ func NewDB(dsn string) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
+func (a *App) CreateEvent(_ context.Context, title string) error {
 	event := &model.Event{Title: title}
 	return a.storage.Event().Create(event)
 }
