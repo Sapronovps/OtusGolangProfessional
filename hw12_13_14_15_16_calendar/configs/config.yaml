@@ -1,5 +1,15 @@
-[logger]
-level = "INFO"
+Server:
+  Host: 127.0.0.1
+  Port: 8081
 
-# TODO
-# ...
+Logger:
+  Level: DEBUG
+  File: test.txt
+
+DB:
+  Host: localhost
+  Port: 5432
+  Username: user
+  Password: password
+  DBName: otus
+  InMemory: false

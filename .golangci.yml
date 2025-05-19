@@ -16,12 +16,23 @@ linters-settings:
           - "!$test"
         allow:
           - $gostd
+          - github.com/gorilla/mux
+          - github.com/lib/pq
+          - go.uber.org/zap
+          - github.com/spf13/viper
+          - github.com/jmoiron/sqlx
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/http
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/logger
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/app
       Test:
         files:
           - $test
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model
 issues:
   exclude-rules:
     - path: _test\.go
@@ -42,16 +53,13 @@ linters:
     - durationcheck
     - errorlint
     - exhaustive
-    - exportloopref
     - funlen
-    - gci
     - gocognit
     - goconst
     - gocritic
     - gocyclo
     - godot
     - gofmt
-    - gofumpt
     - goheader
     - goprintffuncname
     - gosec

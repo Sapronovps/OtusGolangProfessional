@@ -3,24 +3,22 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/app"
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/http"
+	storage2 "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage"
+	memorystorage "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage/memory"
+	sqlstorage "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage/sql"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
 )
 
-var configFile string
-
-func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
-}
-
 func main() {
+	var configFile string
+	flag.StringVar(&configFile, "config", "/etc/calendar/config.yaml", "Path to configuration file")
 	flag.Parse()
 
 	if flag.Arg(0) == "version" {
@@ -28,22 +26,42 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	config := NewConfig(configFile)
+	_ = config
+	logg := logger.New(config.Logger.Level, config.Logger.File)
+	defer logg.Sync()
 
-	storage := memorystorage.New()
+	var storage storage2.Storage
+	if config.DB.InMemory {
+		storage = memorystorage.New()
+	} else {
+		dsn := fmt.Sprintf(
+			"user=%s password=%s dbname=%s sslmode=disable",
+			config.DB.Username, config.DB.Password, config.DB.DBName)
+		db, err := app.NewDB(dsn)
+		if err != nil {
+			panic(fmt.Errorf("connet to db: %w", err))
+		}
+		storage = sqlstorage.New(db)
+	}
+
 	calendar := app.New(logg, storage)
 
-	server := internalhttp.NewServer(logg, calendar)
+	serverAddress := fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
+	server := internalhttp.NewServer(logg, calendar, serverAddress)
 
-	ctx, cancel := signal.NotifyContext(context.Background(),
-		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	ctx, cancel := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGHUP,
+	)
 	defer cancel()
 
 	go func() {
 		<-ctx.Done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		if err := server.Stop(ctx); err != nil {
