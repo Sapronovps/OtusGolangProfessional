@@ -2,6 +2,7 @@ package internalhttp
 
 import (
 	"context"
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model"
 	"net/http"
 	"os"
 	"time"
@@ -17,7 +18,14 @@ type Server struct {
 	server  *http.Server
 }
 
-type Application interface { // TODO
+type Application interface {
+	CreateEvent(event *model.Event) error
+	GetEvent(id int) (model.Event, error)
+	UpdateEvent(id int, event *model.Event) error
+	DeleteEvent(id int) error
+	ListByDay(date time.Time) ([]model.Event, error)
+	ListByWeek(date time.Time) ([]model.Event, error)
+	ListByMonth(date time.Time) ([]model.Event, error)
 }
 
 func NewServer(logger *zap.Logger, app Application, address string) *Server {
@@ -30,40 +38,34 @@ func NewServer(logger *zap.Logger, app Application, address string) *Server {
 	return s
 }
 
-func (s *Server) loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		s.logger.Info(
-			"started",
-			zap.String("method", r.Method),
-			zap.String("uri", r.RequestURI),
-			zap.String("IP", r.RemoteAddr),
-			zap.String("user_agent", r.UserAgent()),
-		)
-		start := time.Now()
-		next.ServeHTTP(w, r)
-		s.logger.Info(
-			"completed",
-			zap.String("method", r.Method),
-			zap.String("uri", r.RequestURI),
-			zap.String("IP", r.RemoteAddr),
-			zap.String("user_agent", r.UserAgent()),
-			zap.Time("request_datetime", start),
-			zap.Duration("duration", time.Since(start)),
-		)
-	})
-}
-
-func echoHelloWorld(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("Hello World"))
-}
-
 func (s *Server) Start(ctx context.Context) error {
 	// Создаем новый роутер
 	r := mux.NewRouter()
 
 	// Регистрируем обработчики
-	r.HandleFunc("/", echoHelloWorld).Methods("GET")
-	r.HandleFunc("/hello", echoHelloWorld).Methods("GET")
+	r.HandleFunc("/", home).Methods("GET")
+	r.HandleFunc("/hello", home).Methods("GET")
+	r.HandleFunc("/events", func(writer http.ResponseWriter, request *http.Request) {
+		createEvent(writer, request, s.app)
+	}).Methods("POST")
+	r.HandleFunc("/events/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		getEvent(writer, request, s.app)
+	}).Methods("GET")
+	r.HandleFunc("/events/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		updateEvent(writer, request, s.app)
+	}).Methods("PUT")
+	r.HandleFunc("/events/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		deleteEvent(writer, request, s.app)
+	}).Methods("DELETE")
+	r.HandleFunc("/listByDay/{date}", func(writer http.ResponseWriter, request *http.Request) {
+		listByDay(writer, request, s.app)
+	}).Methods("GET")
+	r.HandleFunc("/listByWeek/{date}", func(writer http.ResponseWriter, request *http.Request) {
+		listByWeek(writer, request, s.app)
+	}).Methods("GET")
+	r.HandleFunc("/listByMonth/{date}", func(writer http.ResponseWriter, request *http.Request) {
+		listByMonth(writer, request, s.app)
+	}).Methods("GET")
 
 	// Добавляем middleware для логирования
 	r.Use(s.loggingMiddleware)
