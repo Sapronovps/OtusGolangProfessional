@@ -1,20 +1,22 @@
 package sqlstorage
 
-import "context"
+import (
+	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage"
+	"github.com/jmoiron/sqlx"
+)
 
-type Storage struct { // TODO
+type Storage struct {
+	db              *sqlx.DB
+	eventRepository *storage.EventRepository
 }
 
-func New() *Storage {
-	return &Storage{}
+func New(db *sqlx.DB) *Storage {
+	return &Storage{db: db}
 }
 
-func (s *Storage) Connect(ctx context.Context) error {
-	// TODO
-	return nil
-}
-
-func (s *Storage) Close(ctx context.Context) error {
-	// TODO
-	return nil
+func (s *Storage) Event() storage.EventRepository {
+	if s.eventRepository != nil {
+		return *s.eventRepository
+	}
+	return &EventRepository{storage: s}
 }
