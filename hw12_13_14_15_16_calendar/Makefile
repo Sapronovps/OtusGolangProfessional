@@ -39,3 +39,6 @@ migrate:
 
 migrate-down:
 	goose down -dir migrations
+
+generate:
+	cd api && protoc --go_out=../internal/server/grpc --go_opt=paths=source_relative --go-grpc_out=../internal/server/grpc --go-grpc_opt=paths=source_relative EventService.proto

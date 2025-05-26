@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/app"
 	"github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/logger"
+	internalgrpc "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/grpc"
 	internalhttp "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/http"
 	storage2 "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage"
 	memorystorage "github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage/memory"
@@ -47,9 +48,6 @@ func main() {
 
 	calendar := app.New(logg, storage)
 
-	serverAddress := fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
-	server := internalhttp.NewServer(logg, calendar, serverAddress)
-
 	ctx, cancel := signal.NotifyContext(
 		context.Background(),
 		syscall.SIGINT,
@@ -58,22 +56,47 @@ func main() {
 	)
 	defer cancel()
 
-	go func() {
-		<-ctx.Done()
+	if config.Server.IsHttp {
+		serverAddress := fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
+		server := internalhttp.NewServer(logg, calendar, serverAddress)
 
-		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
+		go func() {
+			<-ctx.Done()
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+
+			if err := server.Stop(ctx); err != nil {
+				logg.Error("failed to stop http server: " + err.Error())
+			}
+		}()
+
+		logg.Info("calendar is running...")
+
+		if err := server.Start(ctx); err != nil {
+			logg.Error("failed to start http server: " + err.Error())
+			cancel()
+			os.Exit(1) //nolint:gocritic
 		}
-	}()
+	} else {
+		server := internalgrpc.NewEventsServiceServer(logg, calendar, config.Server.AddressGrpc)
 
-	logg.Info("calendar is running...")
+		go func() {
+			<-ctx.Done()
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
-		os.Exit(1) //nolint:gocritic
+			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+
+			if err := server.Stop(ctx); err != nil {
+				logg.Error("failed to stop http server: " + err.Error())
+			}
+		}()
+		logg.Info("calendar is running...")
+
+		if err := server.Start(ctx); err != nil {
+			logg.Error("failed to start grpc server: " + err.Error())
+			cancel()
+			os.Exit(1) //nolint:gocritic
+		}
 	}
 }
