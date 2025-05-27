@@ -18,7 +18,7 @@ type ServerConf struct {
 	Host        string
 	Port        int
 	AddressGrpc string
-	IsHttp      bool
+	IsHTTP      bool
 }
 
 type LoggerConf struct {

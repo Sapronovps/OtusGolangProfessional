@@ -56,7 +56,7 @@ func main() {
 	)
 	defer cancel()
 
-	if config.Server.IsHttp {
+	if config.Server.IsHTTP {
 		serverAddress := fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
 		server := internalhttp.NewServer(logg, calendar, serverAddress)
 
@@ -78,25 +78,24 @@ func main() {
 			cancel()
 			os.Exit(1) //nolint:gocritic
 		}
-	} else {
-		server := internalgrpc.NewEventsServiceServer(logg, calendar, config.Server.AddressGrpc)
+	}
+	server := internalgrpc.NewEventsServiceServer(logg, calendar, config.Server.AddressGrpc)
 
-		go func() {
-			<-ctx.Done()
+	go func() {
+		<-ctx.Done()
 
-			ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-			defer cancel()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
-			if err := server.Stop(ctx); err != nil {
-				logg.Error("failed to stop http server: " + err.Error())
-			}
-		}()
-		logg.Info("calendar is running...")
-
-		if err := server.Start(ctx); err != nil {
-			logg.Error("failed to start grpc server: " + err.Error())
-			cancel()
-			os.Exit(1) //nolint:gocritic
+		if err := server.Stop(ctx); err != nil {
+			logg.Error("failed to stop http server: " + err.Error())
 		}
+	}()
+	logg.Info("calendar is running...")
+
+	if err := server.Start(ctx); err != nil {
+		logg.Error("failed to start grpc server: " + err.Error())
+		cancel()
+		os.Exit(1)
 	}
 }

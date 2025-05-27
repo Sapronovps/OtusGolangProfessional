@@ -51,7 +51,7 @@ func getEvent(w http.ResponseWriter, r *http.Request, app Application) {
 	}
 	event, err := app.GetEvent(id)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Item not found"), http.StatusNotFound)
+		http.Error(w, "Item not found", http.StatusNotFound)
 		return
 	}
 
@@ -72,14 +72,14 @@ func updateEvent(w http.ResponseWriter, r *http.Request, app Application) {
 
 	_, err = app.GetEvent(id)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Item not found"), http.StatusNotFound)
+		http.Error(w, "Item not found", http.StatusNotFound)
 		return
 	}
 
 	var updatedEvent model.Event
 	err = json.NewDecoder(r.Body).Decode(&updatedEvent)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Invalid JSON payload"), http.StatusBadRequest)
+		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
 		return
 	}
 	updatedEvent.ID = id
