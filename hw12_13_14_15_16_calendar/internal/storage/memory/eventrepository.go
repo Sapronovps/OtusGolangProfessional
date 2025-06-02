@@ -48,7 +48,7 @@ func (r *EventRepository) Get(id int) (model.Event, error) {
 func (r *EventRepository) ListByDay(date time.Time) ([]model.Event, error) {
 	events := make([]model.Event, 0)
 	for _, event := range r.events {
-		if event.EventTime.Equal(date) {
+		if event.EventTime.Format("2006-01-02") == date.Format("2006-01-02") {
 			events = append(events, *event)
 		}
 	}

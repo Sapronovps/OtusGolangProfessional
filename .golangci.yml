@@ -34,6 +34,8 @@ linters-settings:
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - go.uber.org/zap
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage/memory
           - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model
 issues:
   exclude-rules:
