@@ -2,6 +2,55 @@ syntax = "proto3";
 
 package event;
 
+option go_package = "./;internalgrpc";
+
+service EventService {
+  rpc CreateEvent(RequestCreateEvent) returns (Event);
+  rpc GetEvent(RequestGetEvent) returns (Event);
+  rpc UpdateEvent(RequestUpdateEvent) returns (Event);
+  rpc DeleteEvent(RequestDeleteEvent) returns (Event);
+  rpc ListByDay(RequestListByDate) returns (ResponseListByDate);
+  rpc ListByWeek(RequestListByDate) returns (ResponseListByDate);
+  rpc ListByMonth(RequestListByDate) returns (ResponseListByDate);
+}
+
 message Event {
-    // TODO
+  int64 ID = 1;
+  string Title = 2;
+  string EventTime = 3;
+  int64 Duration = 4;
+  string Description = 5;
+  int64 UserID = 6;
+  string TimeToNotify = 7;
+}
+
+message RequestCreateEvent {
+  string Title = 1;
+  string Description = 2;
+  int64 UserID = 3;
+  string TimeToNotify = 4;
+}
+
+message RequestGetEvent {
+  int64 ID = 1;
+}
+
+message RequestUpdateEvent {
+  int64 ID = 1;
+  string Title = 2;
+  string Description = 3;
+  int64 UserID = 4;
+  string TimeToNotify = 5;
+}
+
+message RequestDeleteEvent {
+  int64 ID = 1;
+}
+
+message RequestListByDate {
+  string DateTme = 1;
+}
+
+message ResponseListByDate {
+  repeated Event Events = 1;
 }

@@ -13,10 +13,21 @@ func (r *EventRepository) Create(e *model.Event) error {
 	query := `
 				INSERT INTO events (title, event_time, duration, description, user_id, time_to_notify)
 				VALUES (:title, :event_time, :duration, :description, :user_id, :time_to_notify)
+				RETURNING id
 `
-	if _, err := r.storage.db.NamedExec(query, e); err != nil {
+	rows, err := r.storage.db.NamedQuery(query, e)
+	if err != nil {
 		return err
 	}
+	defer rows.Close()
+
+	if rows.Next() {
+		err := rows.Scan(&e.ID)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -44,13 +55,13 @@ func (r *EventRepository) Delete(id int) error {
 }
 
 func (r *EventRepository) Get(id int) (model.Event, error) {
-	event := model.Event{}
+	event := &model.Event{}
 	err := r.storage.db.Get(event, "SELECT * FROM events WHERE id = $1", id)
 	if err != nil {
-		return event, err
+		return *event, err
 	}
 
-	return event, nil
+	return *event, nil
 }
 
 func (r *EventRepository) ListByDay(date time.Time) ([]model.Event, error) {
@@ -64,7 +75,7 @@ func (r *EventRepository) ListByDay(date time.Time) ([]model.Event, error) {
 				       user_id,
 				       time_to_notify
 				FROM events
-				WHERE event_time = $1`,
+				WHERE event_time::date = $1::date`,
 		date,
 	)
 	if err != nil {
@@ -79,13 +90,13 @@ func (r *EventRepository) ListByWeek(date time.Time) ([]model.Event, error) {
 	err := r.storage.db.Select(
 		&events,
 		`SELECT title,
-				       event_time,
-				       duration,
-				       description,
-				       user_id,
-				       time_to_notify
+       					event_time,
+       					duration,
+       					description,
+       					user_id,
+       					time_to_notify
 				FROM events
-				WHERE event_time >= $1 and event_time <= event_time + make_interval(days => 7)`,
+				WHERE event_time >= $1 and event_time <= $1::date + make_interval(days => 7);`,
 		date,
 	)
 	if err != nil {
@@ -100,13 +111,13 @@ func (r *EventRepository) ListByMonth(date time.Time) ([]model.Event, error) {
 	err := r.storage.db.Select(
 		&events,
 		`SELECT title,
-				       event_time,
-				       duration,
-				       description,
-				       user_id,
-				       time_to_notify
+       					event_time,
+       					duration,
+       					description,
+       					user_id,
+       					time_to_notify
 				FROM events
-				WHERE event_time >= $1 and event_time <= event_time + make_interval(months => 1)`,
+				WHERE event_time >= $1 and event_time <= $1::date + make_interval(months => 1)`,
 		date,
 	)
 	if err != nil {

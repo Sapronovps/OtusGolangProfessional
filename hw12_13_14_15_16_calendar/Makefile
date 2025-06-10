@@ -23,7 +23,7 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race ./internal/storage/memory/
+	go test -race ./internal/storage/memory/ ./internal/app/
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.64.8
@@ -39,3 +39,6 @@ migrate:
 
 migrate-down:
 	goose down -dir migrations
+
+generate:
+	cd api && protoc --go_out=../internal/server/grpc --go_opt=paths=source_relative --go-grpc_out=../internal/server/grpc --go-grpc_opt=paths=source_relative EventService.proto

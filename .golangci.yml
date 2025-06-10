@@ -16,11 +16,13 @@ linters-settings:
           - "!$test"
         allow:
           - $gostd
+          - google.golang.org/grpc
           - github.com/gorilla/mux
           - github.com/lib/pq
           - go.uber.org/zap
           - github.com/spf13/viper
           - github.com/jmoiron/sqlx
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/grpc
           - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage
           - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/server/http
           - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model
@@ -32,6 +34,8 @@ linters-settings:
         allow:
           - $gostd
           - github.com/stretchr/testify
+          - go.uber.org/zap
+          - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/storage/memory
           - github.com/Sapronovps/OtusGolangProfessional/hw12_13_14_15_calendar/internal/model
 issues:
   exclude-rules:

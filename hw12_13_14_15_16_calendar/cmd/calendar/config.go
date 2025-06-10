@@ -15,8 +15,10 @@ type Config struct {
 }
 
 type ServerConf struct {
-	Host string
-	Port int
+	Host        string
+	Port        int
+	AddressGrpc string
+	IsHTTP      bool
 }
 
 type LoggerConf struct {
