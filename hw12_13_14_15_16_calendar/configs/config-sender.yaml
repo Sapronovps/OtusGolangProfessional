@@ -1,0 +1,9 @@
+RabbitMQ:
+  User: admin
+  Password: admin
+  Host: localhost
+  Port: 5672
+  
+Logger:
+  Level: DEBUG
+  File: test-sender.txt
