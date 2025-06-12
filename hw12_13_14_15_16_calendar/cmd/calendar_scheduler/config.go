@@ -12,10 +12,13 @@ type Config struct {
 }
 
 type RabbitMQConf struct {
-	User     string
-	Password string
-	Host     string
-	Port     string
+	User         string
+	Password     string
+	Host         string
+	Port         string
+	ExchangeName string
+	RoutingKey   string
+	ScanInterval int64
 }
 
 type DBConf struct {

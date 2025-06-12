@@ -3,6 +3,9 @@ RabbitMQ:
   Password: admin
   Host: localhost
   Port: 5672
+  ExchangeName: events
+  QueueName: events_queue
+  RoutingKey: event.*
   
 Logger:
   Level: DEBUG

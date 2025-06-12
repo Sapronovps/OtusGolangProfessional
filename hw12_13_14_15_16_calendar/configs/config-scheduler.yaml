@@ -3,6 +3,9 @@ RabbitMQ:
   Password: admin
   Host: localhost
   Port: 5672
+  ExchangeName: events
+  RoutingKey: event.key
+  ScanInterval: 3
 
 DB:
   Host: localhost
