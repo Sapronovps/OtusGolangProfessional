@@ -69,5 +69,5 @@ func main() {
 		panic("Failed to register click")
 	}
 
-	fmt.Println(banner.Shows)
+	fmt.Println(banner.Clicks)
 }
