@@ -1,0 +1,19 @@
+RabbitMQ:
+  User: admin
+  Password: admin
+  Host: localhost
+  Port: 5672
+  ExchangeName: events
+  RoutingKey: event.key
+  ScanInterval: 3
+
+DB:
+  Host: localhost
+  Port: 5432
+  Username: user
+  Password: password
+  DbName: otus
+
+Logger:
+  Level: DEBUG
+  File: test-scheduler.txt
