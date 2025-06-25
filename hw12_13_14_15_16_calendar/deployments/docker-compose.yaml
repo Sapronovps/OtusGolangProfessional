@@ -17,6 +17,35 @@ services:
     networks:
       - otus-network
 
+  calendar-scheduler:
+    build:
+      context: ../
+      dockerfile: build/calendar_scheduler/Dockerfile
+    container_name: otus-calendar-scheduler
+    environment:
+      DB_HOST: ${POSTGRES_HOST:-postgres}
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-rabbitmq}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - otus-network
+
+  calendar-sender:
+    build:
+      context: ../
+      dockerfile: build/calendar_sender/Dockerfile
+    container_name: otus-calendar-sender
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST:-otus-rabbitmq}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - otus-network
+
   postgres:
     image: postgres:17.5
     container_name: otus-postgres
@@ -36,22 +65,27 @@ services:
     networks:
       - otus-network
 
-#  rabbitmq:
-#    image: rabbitmq:3-management
-#    container_name: otus-rabbitmq
-#    hostname: rabbitmq
-#    restart: unless-stopped
-#    ports:
-#      - "5672:5672" # AMQP порт для клиентов
-#      - "15672:15672" # Web UI порт
-#    environment:
-#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
-#    volumes:
-#      - rabbitmq_otus_data:/var/lib/rabbitmq
-#      - rabbitmq_otus_logs:/var/log/rabbitmq
-#    networks:
-#      - otus-network
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: otus-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672" # AMQP порт для клиентов
+      - "15672:15672" # Web UI порт
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
+    volumes:
+      - rabbitmq_otus_data:/var/lib/rabbitmq
+      - rabbitmq_otus_logs:/var/log/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - otus-network
 
 networks:
   otus-network:

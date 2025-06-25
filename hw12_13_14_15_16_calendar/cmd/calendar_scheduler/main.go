@@ -14,15 +14,15 @@ import (
 
 func main() {
 	var configFile string
-	flag.StringVar(&configFile, "config", "/etc/calendar-scheduler/config.yaml", "Path to configuration file")
+	flag.StringVar(&configFile, "config", "/etc/calendar_scheduler/config.yaml", "Path to configuration file")
 	flag.Parse()
 
 	config := NewConfig(configFile)
 	logg := logger.New(config.Logger.Level, config.Logger.File)
 
 	dsn := fmt.Sprintf(
-		"user=%s password=%s dbname=%s sslmode=disable",
-		config.DB.Username, config.DB.Password, config.DB.DBName,
+		"host=%s user=%s password=%s dbname=%s sslmode=disable",
+		config.DB.Host, config.DB.Username, config.DB.Password, config.DB.DBName,
 	)
 	db, err := app.NewDB(dsn)
 	if err != nil {

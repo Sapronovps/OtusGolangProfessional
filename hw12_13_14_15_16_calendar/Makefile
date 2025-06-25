@@ -15,7 +15,7 @@ build-scheduler:
 build-sender:
 	go build -v -o $(BIN_SENDER) -ldflags "$(LDFLAGS)" ./cmd/calendar_sender
 
-build-all: build build-scheduler build-scheduler
+build-all: build build-scheduler build-sender
 
 run: build
 	$(BIN) -config ./configs
