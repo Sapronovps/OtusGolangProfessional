@@ -1,33 +1,61 @@
 version: "3"
 
 services:
+  calendar:
+    build:
+      context: ..
+      dockerfile: build/calendar/Dockerfile
+    container_name: otus-calendar
+    environment:
+      DB_HOST: ${POSTGRES_HOST:-postgres}
+      SERVER_PORT: 8083
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - otus-network
+
   postgres:
     image: postgres:17.5
     container_name: otus-postgres
     environment:
-      POSTGRES_HOST: ${POSTGRES_HOST:-localhost} # если переменная не задана, будет 'localhost'
       POSTGRES_DB: ${POSTGRES_DB:-otus} # имя БД
       POSTGRES_USER: ${POSTGRES_USER:-user} # пользователь
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password} # пароль
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d otus"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     ports:
       - "5432:5432"
     volumes:
       - postgres_otus_data:/var/lib/postgresql/data
+    networks:
+      - otus-network
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: otus-rabbitmq
-    hostname: rabbitmq
-    restart: unless-stopped
-    ports:
-      - "5672:5672" # AMQP порт для клиентов
-      - "15672:15672" # Web UI порт
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
-    volumes:
-      - rabbitmq_otus_data:/var/lib/rabbitmq
-      - rabbitmq_otus_logs:/var/log/rabbitmq
+#  rabbitmq:
+#    image: rabbitmq:3-management
+#    container_name: otus-rabbitmq
+#    hostname: rabbitmq
+#    restart: unless-stopped
+#    ports:
+#      - "5672:5672" # AMQP порт для клиентов
+#      - "15672:15672" # Web UI порт
+#    environment:
+#      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+#      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-admin}
+#    volumes:
+#      - rabbitmq_otus_data:/var/lib/rabbitmq
+#      - rabbitmq_otus_logs:/var/log/rabbitmq
+#    networks:
+#      - otus-network
+
+networks:
+  otus-network:
+    driver: bridge
 
 volumes:
   postgres_otus_data:
