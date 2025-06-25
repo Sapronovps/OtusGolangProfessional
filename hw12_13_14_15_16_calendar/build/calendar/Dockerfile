@@ -27,6 +27,4 @@ COPY --from=build ${BIN_FILE} ${BIN_FILE}
 ENV CONFIG_FILE /etc/calendar/config.yaml
 COPY configs/config.yaml ${CONFIG_FILE}
 
-EXPOSE 8083
-
 CMD ${BIN_FILE} -config /etc/calendar
