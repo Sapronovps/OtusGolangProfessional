@@ -5,8 +5,8 @@ import (
 	"github.com/Sapronovps/OtusGolangProfessional/final_work/internal/model"
 	"github.com/Sapronovps/OtusGolangProfessional/final_work/internal/storage"
 	"go.uber.org/zap"
+	"math"
 	"sync"
-	"time"
 )
 
 type App struct {
@@ -35,70 +35,103 @@ func (a *App) GetBanner(id int) (banner *model.Banner, err error) {
 	return a.storage.Banner().GetBanner(id)
 }
 
-func (a *App) RemoveBanner(id int) error {
-	return a.storage.Banner().DeleteBanner(id)
+func (a *App) CreateGroup(group *model.Group) error {
+	return a.storage.Banner().CreateGroup(group)
 }
 
-func (a *App) AttachBannerToSlot(slotID, bannerID int) error {
-	slot, err := a.GetSlot(slotID)
-	if err != nil {
-		return fmt.Errorf("could not find slot with id %d: %w", slotID, err)
-	}
+func (a *App) GetGroup(id int) (group *model.Group, err error) {
+	return a.storage.Banner().GetGroup(id)
+}
 
-	banner, err := a.GetBanner(bannerID)
-	if err != nil {
-		return fmt.Errorf("could not find banner with id %d: %w", bannerID, err)
-	}
-	if slot.Banners == nil {
-		slot.Banners = make(map[int]*model.Banner)
-	}
+func (a *App) CreateBannerGroupStats(group *model.BannerGroupStats) error {
+	return a.storage.Banner().CreateBannerGroupStats(group)
+}
 
-	slot.Banners[bannerID] = banner
+func (a *App) GetBannerGroupStats(slotID, bannerID, groupID int) (*model.BannerGroupStats, error) {
+	return a.storage.Banner().GetBannerGroupStats(slotID, bannerID, groupID)
+}
+
+func (a *App) RegisterClick(slotID, bannerID, groupID int) error {
+	stats, err := a.storage.Banner().GetBannerGroupStats(slotID, bannerID, groupID)
+	if err != nil {
+		return err
+	}
+	stats.Clicks++
+
 	return nil
 }
 
-func (a *App) DetachBannerFromSlot(slotID, bannerID int) error {
-	slot, err := a.GetSlot(slotID)
-	if err != nil {
-		return fmt.Errorf("could not find slot with id %d: %w", slotID, err)
+func (a *App) GetAndUpdateBanner(slotID, groupID int) (e map[int]float64, err error) {
+	bannersStats := a.storage.Banner().GetBannersGroupStats(slotID, groupID)
+	if bannersStats == nil {
+		return nil, fmt.Errorf("banner group stats not found")
 	}
-	_, ok := slot.Banners[bannerID]
-	if !ok {
-		return fmt.Errorf("no banner found with id %d", bannerID)
+
+	weightBanners := make(map[int]float64)
+	_ = weightBanners
+	allShows := 0
+
+	for _, stats := range bannersStats {
+		stats.Shows++
+		allShows += stats.Shows
 	}
-	delete(slot.Banners, bannerID)
-	return nil
+
+	for _, stats := range bannersStats {
+		numerator := float64(stats.Clicks) * math.Log(float64(allShows))
+		fraction := numerator / float64(stats.Shows)
+		sqrtVal := math.Sqrt(fraction)
+		result := float64(stats.Clicks) + sqrtVal
+		weightBanners[stats.BannerID] = result
+	}
+
+	return weightBanners, nil
 }
 
-func (a *App) RegisterClick(bannerID int) error {
-	a.mu.Lock()
-	defer a.mu.Unlock()
+//func (a *App) RemoveBanner(id int) error {
+//	return a.storage.Banner().DeleteBanner(id)
+//}
 
-	banner, err := a.GetBanner(bannerID)
-	if err != nil {
-		return fmt.Errorf("could not find banner with id %d: %w", bannerID, err)
-	}
+//func (a *App) AttachBannerToSlot(slotID, bannerID int) error {
+//	slot, err := a.GetSlot(slotID)
+//	if err != nil {
+//		return fmt.Errorf("could not find slot with id %d: %w", slotID, err)
+//	}
+//
+//	banner, err := a.GetBanner(bannerID)
+//	if err != nil {
+//		return fmt.Errorf("could not find banner with id %d: %w", bannerID, err)
+//	}
+//	if slot.Banners == nil {
+//		slot.Banners = make(map[int]*model.Banner)
+//	}
+//
+//	slot.Banners[bannerID] = banner
+//	return nil
+//}
 
-	banner.Clicks++
-	banner.Weight = float64(banner.Clicks) / float64(banner.Shows) // Обновляем CTR
-	return nil
-}
+//func (a *App) DetachBannerFromSlot(slotID, bannerID int) error {
+//	slot, err := a.GetSlot(slotID)
+//	if err != nil {
+//		return fmt.Errorf("could not find slot with id %d: %w", slotID, err)
+//	}
+//	_, ok := slot.Banners[bannerID]
+//	if !ok {
+//		return fmt.Errorf("no banner found with id %d", bannerID)
+//	}
+//	delete(slot.Banners, bannerID)
+//	return nil
+//}
 
-func (a *App) calculateFatigue(slotId, bannerId int) (float64, error) {
-	slot, err := a.GetSlot(slotId)
-	if err != nil {
-		return 0, fmt.Errorf("could not find slot with id %d: %w", slotId, err)
-	}
-	history := slot.ShowHistory[bannerId]
-	now := time.Now()
-	recentShows := 0
-
-	// Учитываем только показы за последние N часов (или другой интервал)
-	for _, t := range history {
-		if now.Sub(t) < time.Hour*24 {
-			recentShows++
-		}
-	}
-
-	return float64(recentShows), nil
-}
+//func (a *App) RegisterClick(bannerID int) error {
+//	a.mu.Lock()
+//	defer a.mu.Unlock()
+//
+//	banner, err := a.GetBanner(bannerID)
+//	if err != nil {
+//		return fmt.Errorf("could not find banner with id %d: %w", bannerID, err)
+//	}
+//
+//	banner.Clicks++
+//	banner.Weight = float64(banner.Clicks) / float64(banner.Shows) // Обновляем CTR
+//	return nil
+//}

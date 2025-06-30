@@ -18,8 +18,10 @@ func (s *Storage) Banner() storage.BannerRepository {
 		return s.bannerRepository
 	}
 	s.bannerRepository = &BannerRepository{
-		Slots:   make(map[int]*model.Slot),
-		Banners: make(map[int]*model.Banner),
+		Slots:            make(map[int]*model.Slot),
+		Banners:          make(map[int]*model.Banner),
+		Groups:           make(map[int]*model.Group),
+		BannerGroupStats: make(map[int]*model.BannerGroupStats),
 	}
 	return s.bannerRepository
 }

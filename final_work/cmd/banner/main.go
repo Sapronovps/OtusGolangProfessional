@@ -25,13 +25,12 @@ func main() {
 
 	application := app.NewApp(logg, storage)
 
+	// Создаем СЛОТ
 	newSlot := model.Slot{
 		ID:          1,
-		Description: "Hello world",
+		Description: "First Slot",
 	}
-
 	err := application.AddSlot(&newSlot)
-
 	if err != nil {
 		panic("Failed to add new slot")
 	}
@@ -42,12 +41,11 @@ func main() {
 	}
 	_ = slot
 
+	// Создаем БАННЕР
 	newBanner := model.Banner{
-		Description: "New Banner",
+		Description: "First Banner",
 	}
-
 	err = application.AddBanner(&newBanner)
-
 	if err != nil {
 		panic("Failed to add new banner")
 	}
@@ -56,18 +54,50 @@ func main() {
 	if err != nil {
 		panic("Failed to get banner")
 	}
+	_ = banner
 
-	err = application.AttachBannerToSlot(slot.ID, banner.ID)
+	// Создаем ГРУППУ
+	newGroup := &model.Group{
+		Name:        "Старики",
+		Description: "First Group",
+	}
+	err = application.CreateGroup(newGroup)
 	if err != nil {
-		panic("Failed to attach banner")
+		panic("Failed to get banner")
 	}
 
-	err = application.RegisterClick(banner.ID)
-	err = application.RegisterClick(banner.ID)
-	err = application.RegisterClick(banner.ID)
+	group, err := application.GetGroup(1)
+	if err != nil {
+		panic("Failed to get group:" + err.Error())
+	}
+	_ = group
+
+	// Создаем Привязку Слот -> Баннер -> Группа
+	bannerGroupStats := &model.BannerGroupStats{
+		SlotID:   slot.ID,
+		BannerID: banner.ID,
+		GroupID:  group.ID,
+	}
+	err = application.CreateBannerGroupStats(bannerGroupStats)
+	if err != nil {
+		panic("Failed to get banner")
+	}
+
+	fmt.Println(bannerGroupStats)
+
+	// Регистрируем клик
+	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
+	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
+	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
 	if err != nil {
 		panic("Failed to register click")
 	}
 
-	fmt.Println(banner.Clicks)
+	// Получим статистику по баннерам
+	result, err := application.GetAndUpdateBanner(slot.ID, group.ID)
+	if err != nil {
+		panic("Failed to get and update banner")
+	}
+
+	fmt.Println(result)
 }
