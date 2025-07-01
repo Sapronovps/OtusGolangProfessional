@@ -56,6 +56,15 @@ func main() {
 	}
 	_ = banner
 
+	// Создаем 2 БАННЕР
+	newBanner2 := model.Banner{
+		Description: "Second Banner",
+	}
+	err = application.AddBanner(&newBanner2)
+	if err != nil {
+		panic("Failed to add new banner")
+	}
+
 	// Создаем ГРУППУ
 	newGroup := &model.Group{
 		Name:        "Старики",
@@ -83,15 +92,28 @@ func main() {
 		panic("Failed to get banner")
 	}
 
+	secondBannerGroupStats := &model.BannerGroupStats{
+		SlotID:   slot.ID,
+		BannerID: newBanner2.ID,
+		GroupID:  group.ID,
+	}
+	err = application.CreateBannerGroupStats(secondBannerGroupStats)
+	if err != nil {
+		panic("Failed to get banner")
+	}
+
 	fmt.Println(bannerGroupStats)
 
 	// Регистрируем клик
 	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
 	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
-	err = application.RegisterClick(slot.ID, banner.ID, group.ID)
+	err = application.RegisterClick(slot.ID, newBanner2.ID, group.ID)
 	if err != nil {
 		panic("Failed to register click")
 	}
+
+	bannerGroupStats.Shows = 10
+	secondBannerGroupStats.Shows = 5
 
 	// Получим статистику по баннерам
 	result, err := application.GetAndUpdateBanner(slot.ID, group.ID)

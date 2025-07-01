@@ -3,9 +3,9 @@ package app
 import (
 	"fmt"
 	"github.com/Sapronovps/OtusGolangProfessional/final_work/internal/model"
+	"github.com/Sapronovps/OtusGolangProfessional/final_work/internal/service"
 	"github.com/Sapronovps/OtusGolangProfessional/final_work/internal/storage"
 	"go.uber.org/zap"
-	"math"
 	"sync"
 )
 
@@ -61,30 +61,19 @@ func (a *App) RegisterClick(slotID, bannerID, groupID int) error {
 	return nil
 }
 
-func (a *App) GetAndUpdateBanner(slotID, groupID int) (e map[int]float64, err error) {
+func (a *App) GetAndUpdateBanner(slotID, groupID int) (banner *model.Banner, err error) {
 	bannersStats := a.storage.Banner().GetBannersGroupStats(slotID, groupID)
 	if bannersStats == nil {
 		return nil, fmt.Errorf("banner group stats not found")
 	}
 
-	weightBanners := make(map[int]float64)
-	_ = weightBanners
-	allShows := 0
+	bannerID := service.CalculateBannerIdByOneArmBandit(bannersStats)
 
-	for _, stats := range bannersStats {
-		stats.Shows++
-		allShows += stats.Shows
+	if bannerID > 0 {
+		return a.storage.Banner().GetBanner(bannerID)
 	}
 
-	for _, stats := range bannersStats {
-		numerator := float64(stats.Clicks) * math.Log(float64(allShows))
-		fraction := numerator / float64(stats.Shows)
-		sqrtVal := math.Sqrt(fraction)
-		result := float64(stats.Clicks) + sqrtVal
-		weightBanners[stats.BannerID] = result
-	}
-
-	return weightBanners, nil
+	return nil, fmt.Errorf("banner group stats not found")
 }
 
 //func (a *App) RemoveBanner(id int) error {

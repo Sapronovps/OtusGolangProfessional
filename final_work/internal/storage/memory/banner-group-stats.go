@@ -25,13 +25,13 @@ func (b *BannerRepository) GetBannerGroupStats(slotID, bannerID, groupID int) (*
 	return nil, fmt.Errorf("banner group stats not found")
 }
 
-func (b *BannerRepository) GetBannersGroupStats(slotID, bannerID int) []*model.BannerGroupStats {
+func (b *BannerRepository) GetBannersGroupStats(slotID, groupID int) []*model.BannerGroupStats {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
 	bannersStats := make([]*model.BannerGroupStats, 0)
 	for _, stats := range b.BannerGroupStats {
-		if stats.SlotID == slotID && stats.BannerID == bannerID {
+		if stats.SlotID == slotID && stats.GroupID == groupID {
 			bannersStats = append(bannersStats, stats)
 		}
 	}
